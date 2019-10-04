@@ -1,5 +1,6 @@
 import sys
 import socket
+import json
 import time, datetime
 
 from py7slib.core.vuart import VUART_shell
@@ -75,5 +76,5 @@ class WrLen(VUART_shell):
         rv['ip'] = self.ip
         rv['timestamp'] = datetime.datetime.now().isoformat()
         rv['serial'] = self.serial
-        rv['aliases'] = self.aliases
+        rv['aliases'] = json.dumps(self.aliases)
         return rv
