@@ -59,9 +59,9 @@ class WrLen(VUART_shell):
                         key = key.strip()
                         val = val.strip()
                         try:
-                            rv['wr1:%s' % key] = int(val)
+                            rv['wr1_%s' % key] = int(val)
                         except ValueError:
-                            rv['wr1:%s' % key] = val
+                            rv['wr1_%s' % key] = val
                     except ValueError:
                         pass
             elif line.startswith('temp'):
