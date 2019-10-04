@@ -45,7 +45,8 @@ def main():
             r.hmset(hash_key, stats)
             # Delete old keys in case there is some weird stale stuff
             old_keys = [k for k in r.hkeys(hash_key) if k not in stats.keys()]
-            r.hdel(hash_key, *old_keys)
+            if len(old_keys) > 0:
+                r.hdel(hash_key, *old_keys)
         extra_wait = args.polltime - (time.time() - start_time)
         if extra_wait > 0:
             time.sleep(extra_wait)
