@@ -8,7 +8,8 @@ class WrLen(VUART_shell):
     def __init__(self, host):
         self.host = host
         try:
-            self.ip = socket.gethostbyname(self.host)
+            self.serial, self.aliases, self.ips = socket.gethostbyaddr(self.host)
+            self.ip = self.ips[0]
             VUART_shell.__init__(self, self.ip)
         except socket.gaierror:
             print("hostname %s not known!" % host)
@@ -73,4 +74,6 @@ class WrLen(VUART_shell):
         rv.update(self.process_stats())
         rv['ip'] = self.ip
         rv['timestamp'] = datetime.datetime.now().isoformat()
+        rv['serial'] = self.serial
+        rv['aliases'] = self.aliases
         return rv

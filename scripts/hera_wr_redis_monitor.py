@@ -8,7 +8,10 @@ def main():
     import argparse
     import redis
     import time
+    import datetime
+    import os
     from hera_wr_cm.wr_len import WrLen
+    from hera_wr_cm import __version__
 
     parser = argparse.ArgumentParser(description='VUART shell for WR-LEN')
     parser.add_argument('hosts', metavar='hosts', type=str, nargs='*',
@@ -26,16 +29,23 @@ def main():
 
     print('Begging WR-LEN status polling. Hosts are:')
     print(hosts)
+    script_redis_key = "status:script:%s" % __file__
     while(True):
+        r.set(script_redis_key, "alive", ex=max(180, args.polltime* 2))
+        r.hmset("version:%s:%s" % (__package__, os.path.basename(__file__)), {"version":__version__, "timestamp":datetime.datetime.now().isoformat()})
         start_time = time.time()
         for host in hosts:
+            hash_key = 'status:wr:%s' % host
             try:
                 ip = socket.gethostbyname(host)
             except socket.gaierror:
                 continue
             wr = WrLen(host)
-            stats = wr.process_stats()
-            r.hmset('status:wr:%s' % wr.host, stats)
+            stats = wr.gather_keys()
+            r.hmset(hash_key, stats)
+            # Delete old keys in case there is some weird stale stuff
+            old_keys = [k for k in r.hkeys(hash_key) if k not in stats.keys()]
+            r.hdel(hash_key, *old_keys)
         extra_wait = args.polltime - (time.time() - start_time)
         if extra_wait > 0:
             time.sleep(extra_wait)
