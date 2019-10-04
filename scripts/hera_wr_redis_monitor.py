@@ -2,10 +2,12 @@
 Simple script to poll WR-LEN endpoints by hostname and
 write stats to redis
 '''
+
 def main():
     import socket
     import argparse
     import redis
+    import time
     from hera_wr_cm.wr_len import WrLen
 
     parser = argparse.ArgumentParser(description='VUART shell for WR-LEN')
