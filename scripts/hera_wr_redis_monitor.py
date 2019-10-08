@@ -13,6 +13,8 @@ def main():
     from hera_wr_cm.wr_len import WrLen
     from hera_wr_cm import __version__
 
+    hostname = socket.gethostname()
+
     parser = argparse.ArgumentParser(description='VUART shell for WR-LEN')
     parser.add_argument('hosts', metavar='hosts', type=str, nargs='*',
                     help='WR hosts to poll. Default: heraNode{0..32}wr')
@@ -29,7 +31,7 @@ def main():
 
     print('Begging WR-LEN status polling. Hosts are:')
     print(hosts)
-    script_redis_key = "status:script:%s" % __file__
+    script_redis_key = "status:script:%s:%s" % (hostname, __file__)
     while(True):
         r.set(script_redis_key, "alive", ex=max(180, args.polltime* 2))
         r.hmset("version:%s:%s" % (__package__, os.path.basename(__file__)), {"version":__version__, "timestamp":datetime.datetime.now().isoformat()})
