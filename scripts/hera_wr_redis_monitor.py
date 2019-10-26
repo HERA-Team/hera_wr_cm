@@ -32,26 +32,33 @@ def main():
     print('Begging WR-LEN status polling. Hosts are:')
     print(hosts)
     script_redis_key = "status:script:%s:%s" % (hostname, __file__)
+    wr_devices = {}
+    count = 0
     while(True):
-        r.set(script_redis_key, "alive", ex=max(180, args.polltime* 2))
+        r.set(script_redis_key, "alive", ex=60)
         r.hmset("version:%s:%s" % (__package__, os.path.basename(__file__)), {"version":__version__, "timestamp":datetime.datetime.now().isoformat()})
         start_time = time.time()
+        count += 1
         for host in hosts:
             hash_key = 'status:wr:%s' % host
-            try:
-                ip = socket.gethostbyname(host)
-            except socket.gaierror:
-                continue
-            wr = WrLen(host)
-            stats = wr.gather_keys()
+            if host not in wr_devices.keys():
+                try:
+                    ip = socket.gethostbyname(host)
+                except socket.gaierror:
+                    continue
+                wr_devices[host] = WrLen(host)
+            print("%d: polling %s" % (count, host))
+            stats = wr_devices[host].gather_keys()
             r.hmset(hash_key, stats)
             # Delete old keys in case there is some weird stale stuff
             old_keys = [k for k in r.hkeys(hash_key) if k not in stats.keys()]
             if len(old_keys) > 0:
                 r.hdel(hash_key, *old_keys)
         extra_wait = args.polltime - (time.time() - start_time)
-        if extra_wait > 0:
-            time.sleep(extra_wait)
+        while extra_wait > 0:
+            r.set(script_redis_key, "alive", ex=60)
+            time.sleep(min(extra_wait, 60))
+            extra_wait -= 60
 
 if __name__ == '__main__':
     main()

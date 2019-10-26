@@ -15,7 +15,7 @@ Restart=always
 RestartSec=60
 User=hera
 Group=hera
-ExecStart=/usr/local/bin/hera_wr_redis_monitor.py
+ExecStart=/usr/local/bin/hera_wr_redis_monitor.py -t 3600
 
 [Install]
 WantedBy=multi-user.target
