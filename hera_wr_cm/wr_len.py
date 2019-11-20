@@ -69,9 +69,11 @@ class WrLen(VUART_shell):
                 rv['temp'] = line.split(' ')[1]
         return rv
 
-    def gather_keys(self):
+    def gather_keys(self, include_ver=False):
         rv = {}
-        rv.update(self.process_ver())
+        if include_ver:
+            rv.update(self.process_ver())
+            rv['ver_timestamp'] = datetime.datetime.now().isoformat()
         rv.update(self.process_stats())
         rv['ip'] = self.ip
         rv['timestamp'] = datetime.datetime.now().isoformat()
