@@ -40,7 +40,6 @@ def main():
         start_time = time.time()
         count += 1
         for host in hosts:
-            include_ver = False
             hash_key = 'status:wr:%s' % host
             if host not in wr_devices.keys():
                 try:
@@ -48,9 +47,8 @@ def main():
                 except socket.gaierror:
                     continue
                 wr_devices[host] = WrLen(host)
-                include_ver = True
             print("%d: polling %s" % (count, host))
-            stats = wr_devices[host].gather_keys(include_ver = include_ver)
+            stats = wr_devices[host].gather_keys(include_ver=False)
             r.hmset(hash_key, stats)
             # Delete old keys in case there is some weird stale stuff
             old_keys = [k for k in r.hkeys(hash_key) if k not in stats.keys()]
