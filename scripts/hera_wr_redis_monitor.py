@@ -46,14 +46,21 @@ def main():
                     ip = socket.gethostbyname(host)
                 except socket.gaierror:
                     continue
-                wr_devices[host] = WrLen(host)
+                try:
+                    wr_devices[host] = WrLen(host)
+                except:
+                    print("Error while connecting to %s" % host)
+                    continue
             print("%d: polling %s" % (count, host))
-            stats = wr_devices[host].gather_keys(include_ver=False)
-            r.hmset(hash_key, stats)
-            # Delete old keys in case there is some weird stale stuff
-            old_keys = [k for k in r.hkeys(hash_key) if k not in stats.keys()]
-            if len(old_keys) > 0:
-                r.hdel(hash_key, *old_keys)
+            try:
+                stats = wr_devices[host].gather_keys(include_ver=False)
+                r.hmset(hash_key, stats)
+                # Delete old keys in case there is some weird stale stuff
+                old_keys = [k for k in r.hkeys(hash_key) if k not in stats.keys()]
+                if len(old_keys) > 0:
+                    r.hdel(hash_key, *old_keys)
+            except:
+                print("Error while polling %s" % host)
         extra_wait = args.polltime - (time.time() - start_time)
         while extra_wait > 0:
             r.set(script_redis_key, "alive", ex=60)
